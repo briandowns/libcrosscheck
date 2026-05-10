@@ -1,6 +1,6 @@
 cc = cc
 
-NAME = crosscheck
+NAME = libcrosscheck
 
 UNAME_S = $(shell uname -s)
 
@@ -14,8 +14,7 @@ LIBDIR  = /usr/local/lib
 ifeq ($(UNAME_S),Darwin)
 $(NAME).dylib: clean
 	$(CC) -dynamiclib -o $@ crosscheck.c $(CFLAGS) $(LDFLAGS)
-endif
-ifeq ($(UNAME_S),Linux)
+else
 $(NAME).so: clean
 	$(CC) -shared -o $@ crosscheck.c $(CFLAGS) $(LDFLAGS)
 endif
@@ -32,22 +31,18 @@ valgrind: tests
 .PHONY: install
 install: 
 	cp crosscheck.h $(INCDIR)
-ifeq ($(UNAME_S),Linux)	
-	cp crosscheck.h $(INCDIR)
-	cp $(NAME).so $(LIBDIR)
-endif
 ifeq ($(UNAME_S),Darwin)
-	cp crosscheck.h $(INCDIR)
 	cp $(NAME).dylib $(LIBDIR)
+else
+	cp $(NAME).so $(LIBDIR)
 endif
 
 uninstall:
 	rm -f $(INCDIR)/crosscheck.h
-ifeq ($(UNAME_S),Linux)
-	rm -f $(INCDIR)/$(NAME).so
-endif
 ifeq ($(UNAME_S),Darwin)
 	rm -f $(INCDIR)/$(NAME).dylib
+else
+	rm -f $(INCDIR)/$(NAME).so
 endif
 
 .PHONY: clean
