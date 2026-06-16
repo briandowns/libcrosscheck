@@ -7,6 +7,6 @@
 bin/*
 tests/tests
 example
-crosscheck.dylib
-crosscheck.so
+libcrosscheck.dylib
+libcrosscheck.so
 test

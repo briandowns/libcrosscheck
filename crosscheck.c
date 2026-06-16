@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2025 Brian J. Downs
+ * Copyright (c) 2026 Brian J. Downs
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,12 +37,48 @@
 #define RED   "\x1B[31m"
 #define RESET "\033[0m"
 
-static clock_t  start, end;
-static uint64_t count  = 0;
+typedef struct {
+    const char *function;
+    const char *filename;
+    uint64_t line;
+    double duration_ms;
+    cc_result_t result;
+    bool passed;
+} test_record_t;
+
+static uint64_t count = 0;
 static uint64_t passed = 0;
 static uint64_t failed = 0;
-static clock_t  start  = 0;
-static clock_t  end    = 0;
+static clock_t  start = 0;
+static clock_t  end = 0;
+
+static test_record_t *results = NULL;
+static size_t result_count = 0;
+static size_t result_capacity = 0;
+static size_t longest_name = 0;
+
+static bool
+results_add(test_record_t record)
+{
+    if (result_count == result_capacity) {
+
+        size_t new_capacity =
+            result_capacity == 0 ? 64 : result_capacity * 2;
+
+        test_record_t *tmp =
+            realloc(results, new_capacity * sizeof(test_record_t));
+
+        if (tmp == NULL)
+            return false;
+
+        results = tmp;
+        result_capacity = new_capacity;
+    }
+
+    results[result_count++] = record;
+
+    return true;
+}
 
 void
 cc_init()
@@ -52,10 +88,10 @@ cc_init()
 }
 
 /**
-* cc_print_fail_info prints relevant data for the failure condition.
+* print_fail_info prints relevant data for the failure condition.
 */
 static void
-cc_print_fail_info(const cc_result_t ret, const double time_spent)
+print_fail_info(const cc_result_t ret, const double time_spent)
 {
     printf("  %-36s%18s:%-12"PRIu64 RED "%-8s" RESET " %-2.3f/ms\n",
         ret.function, ret.filename, ret.line, "failed", (time_spent*1000));
@@ -132,18 +168,32 @@ cc_run(cc_func_t func)
     
     double time_spent = (double)(test_end - test_start) / CLOCKS_PER_SEC;
 
+    size_t len = strlen(ret.function);
+
+    if (len > longest_name) {
+        longest_name = len;
+    }
+
     if (ret.result == false) {
         failed++;
 
-        cc_print_fail_info(ret, time_spent);
+        print_fail_info(ret, time_spent);
         cc_tear_down();
 
         return false;
     }
     passed++;
-    
-    printf("  %-36s%-36s" GREEN "%-8s" RESET "   %-2.3f/ms\n",
-        ret.function, "", "   passed", (time_spent*1000));
+
+    test_record_t record = {
+        .function = ret.function,
+        .filename = ret.filename,
+        .line = ret.line,
+        .duration_ms = time_spent * 1000,
+        .result = ret,
+        .passed = ret.result
+    };
+
+    results_add(record);
     cc_tear_down();
     
     return true;
@@ -153,9 +203,21 @@ uint64_t
 cc_complete()
 {
     end = clock();
-    double ts = (double)(end - start) / CLOCKS_PER_SEC; \
-    printf("\nTotal: %-4"PRIu64 " Passed: %-4"PRIu64 " Failed: %-4"PRIu64 "in  %-2.3f/ms\n", \
-        count, passed, failed, (ts*1000));
+    double ts = (double)(end - start) / CLOCKS_PER_SEC;
+
+    for (size_t i = 0; i < result_count; i++) {
+        test_record_t *r = &results[i];
+
+        if (r->passed) {
+            printf("  %-*s " GREEN "%-8s" RESET " %8.3f ms\n",
+                (int)longest_name, r->function, "passed", r->duration_ms);
+        } else {
+            printf("  %-*s " RED "%-8s" RESET " %8.3f ms\n",
+                (int)longest_name, r->function, "failed", r->duration_ms);
+        }
+    }
+
+    printf("\nTotal: %-4"PRIu64 " Passed: %-4"PRIu64 " Failed: %-4"PRIu64 "in  %-2.3f/ms\n", count, passed, failed, (ts*1000));
 
     return failed;
 }
