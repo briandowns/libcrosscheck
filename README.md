@@ -4,6 +4,22 @@
 
 Crosscheck is a very simple unit testing library for C code.
 
+## Build and Install
+
+```sh
+make
+```
+
+```sh
+sudo make install
+```
+
+You can also build it as a static library.
+
+```sh
+make static
+```
+
 ## Usage
 
 Initialize the library with the below macro.
