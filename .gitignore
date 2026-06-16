@@ -1,3 +1,4 @@
+*.a
 *.o
 *.so
 *.dynlib
@@ -7,6 +8,4 @@
 bin/*
 tests/tests
 example
-libcrosscheck.dylib
-libcrosscheck.so
 test

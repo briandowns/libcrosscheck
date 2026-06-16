@@ -45,11 +45,15 @@ else
 	rm -f $(INCDIR)/$(NAME).so
 endif
 
+.PHONY: static
+static: clean
+	$(CC) -c -o $(NAME).o crosscheck.c $(CFLAGS)
+	ar rcs $(NAME).a $(NAME).o
+
 .PHONY: clean
 clean:
 	rm -f $(NAME).dylib
 	rm -f $(NAME).so
-	rm -f example
 	rm -f tests/tests
 	rm -f test
 

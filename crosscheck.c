@@ -217,7 +217,8 @@ cc_complete()
         }
     }
 
-    printf("\nTotal: %-4"PRIu64 " Passed: %-4"PRIu64 " Failed: %-4"PRIu64 "in  %-2.3f/ms\n", count, passed, failed, (ts*1000));
+    printf("\nTotal: %-4"PRIu64 " Passed: %-4"PRIu64 " Failed: %-4"PRIu64 "in  %-2.3f/ms\n",
+        count, passed, failed, (ts*1000));
 
     return failed;
 }
