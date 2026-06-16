@@ -1,4 +1,4 @@
-cc = cc
+CC ?= cc
 
 NAME = libcrosscheck
 

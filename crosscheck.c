@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+#define _POSIX_C_SOURCE 199309L
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -56,6 +57,9 @@ static test_record_t *results = NULL;
 static size_t result_count = 0;
 static size_t result_capacity = 0;
 static size_t longest_name = 0;
+
+__attribute__((weak)) void cc_setup(void) {}
+__attribute__((weak)) void cc_tear_down(void) {}
 
 static bool
 results_add(test_record_t record)
@@ -138,19 +142,19 @@ print_fail_info(const cc_result_t ret, const double time_spent)
         printf("        expected: %"PRId64", got: %"PRId64"\n",
             ret.exp.int64_val, ret.act.int64_val);
     } else if (ret.type == test_type_uint) {
-        printf("        expected: %d, got: %d\n",
+        printf("        expected: %u, got: %u\n",
             ret.exp.uint_val, ret.act.uint_val);
     } else if (ret.type == test_type_uint8) {
-        printf("        expected: %d, got: %d\n",
+        printf("        expected: %"PRIu8", got: %"PRIu8"\n",
             ret.exp.uint8_val, ret.act.uint8_val);
     } else if (ret.type == test_type_uint16) {
-        printf("        expected: %d, got: %d\n",
+        printf("        expected: %"PRIu16", got: %"PRIu16"\n",
             ret.exp.uint16_val, ret.act.uint16_val);
     } else if (ret.type == test_type_uint32) {
-        printf("        expected: %d, got: %d\n",
+        printf("        expected: %"PRIu32", got: %"PRIu32"\n",
             ret.exp.uint32_val, ret.act.uint32_val);
     } else if (ret.type == test_type_uint64) {
-        printf("        expected: %"PRId64", got: %"PRId64"\n",
+        printf("        expected: %"PRIu64", got: %"PRIu64"\n",
             ret.exp.uint64_val, ret.act.uint64_val);
     }
 }
@@ -162,38 +166,34 @@ cc_run(cc_func_t func)
 
     count++;
 
-    clock_t test_start = clock();
+    struct timespec ts_start;
+    struct timespec ts_end;
+    clock_gettime(CLOCK_MONOTONIC, &ts_start);
     cc_result_t ret = func();
-    clock_t test_end = clock();
-    
-    double time_spent = (double)(test_end - test_start) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
-    size_t len = strlen(ret.function);
+    double elapsed_ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0
+                    + (ts_end.tv_nsec - ts_start.tv_nsec) / 1e6;
 
-    if (len > longest_name) {
-        longest_name = len;
-    }
-
-    if (ret.result == false) {
-        failed++;
-
-        print_fail_info(ret, time_spent);
-        cc_tear_down();
-
-        return false;
-    }
-    passed++;
+    bool ok = ret.result;
+    ok ? passed++ : failed++;
 
     test_record_t record = {
-        .function = ret.function,
-        .filename = ret.filename,
-        .line = ret.line,
-        .duration_ms = time_spent * 1000,
-        .result = ret,
-        .passed = ret.result
+        .function    = ret.function,
+        .filename    = ret.filename,
+        .line        = ret.line,
+        .duration_ms = elapsed_ms,
+        .result      = ret,
+        .passed      = ok
     };
+    if (!results_add(record)) {
+        fprintf(stderr, "out of memory, test record lost\n");
+        failed++;
+    }
 
-    results_add(record);
+    size_t len = ret.function ? strlen(ret.function) : 0;
+    if (len > longest_name) longest_name = len;
+
     cc_tear_down();
     
     return true;
@@ -212,13 +212,15 @@ cc_complete()
             printf("  %-*s " GREEN "%-8s" RESET " %8.3f ms\n",
                 (int)longest_name, r->function, "passed", r->duration_ms);
         } else {
-            printf("  %-*s " RED "%-8s" RESET " %8.3f ms\n",
-                (int)longest_name, r->function, "failed", r->duration_ms);
+            print_fail_info(r->result, r->duration_ms);
         }
     }
 
     printf("\nTotal: %-4"PRIu64 " Passed: %-4"PRIu64 " Failed: %-4"PRIu64 "in  %-2.3f/ms\n",
         count, passed, failed, (ts*1000));
+
+    free(results);
+    results = NULL;
 
     return failed;
 }

@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __CC_H
-#define __CC_H
+#ifndef __CROSSCHECK_H
+#define __CROSSCHECK_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +39,6 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
  
 /**
  * test_value_type_t contains all possible types that can be under test.
@@ -92,8 +91,8 @@ typedef union {
  * the test has failed or succeeded.
  */
 typedef struct {
-    char *filename;
-    char *function;
+    const char *filename;
+    const char *function;
     test_value_type_t type;
     test_values_t exp;
     test_values_t act;
@@ -105,7 +104,7 @@ typedef struct {
  * cc_func_t is the function definition for a unit test to be passed into the
  * cc_run function for execution.
  */
-typedef cc_result_t (*cc_func_t)();
+typedef cc_result_t (*cc_func_t)(void);
 
 /**
  * CC_SUCCESS is a convenience macro to be included at the end of the 
@@ -274,15 +273,19 @@ typedef cc_result_t (*cc_func_t)();
  * __CC_STRING_VAL_COPY copies the string values under test.
  */
 #define __CC_STRING_VAL_COPY(actual, expected)                   \
-    ccrt.exp = (test_values_t) {                                 \
-        .string_val = calloc(strlen((expected))+1, sizeof(char)) \
-    };                                                           \
-    strcpy(ccrt.exp.string_val, (expected));                     \
-    ccrt.act = (test_values_t) {                                 \
-        .string_val = calloc(strlen((actual))+1, sizeof(char))   \
-    };                                                           \
-    strcpy(ccrt.act.string_val, (actual));
- 
+    do {                                                         \
+        size_t exp_len = strlen((expected));                     \
+        size_t act_len = strlen((actual));                       \
+        ccrt.exp.string_val = calloc(exp_len + 1, sizeof(char)); \
+        ccrt.act.string_val = calloc(act_len + 1, sizeof(char)); \
+        if (ccrt.exp.string_val) {                               \
+            memcpy(ccrt.exp.string_val, (expected), exp_len);    \
+        }                                                        \
+        if (ccrt.act.string_val) {                               \
+            memcpy(ccrt.act.string_val, (actual), act_len);      \
+        }                                                        \
+    } while (0)
+
 /**
  * CC_ASSERT_STRING_EQUAL takes 2 strings and reports on their inequality. 
  */
@@ -424,4 +427,4 @@ cc_run(cc_func_t func);
 #ifdef __cplusplus
 }
 #endif 
-#endif /** end __CC_H */
+#endif /** end __CROSSCHECK_H */

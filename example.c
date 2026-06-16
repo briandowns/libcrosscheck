@@ -41,7 +41,7 @@ sub(int64_t x, int64_t y)
 }
 
 cc_result_t
-test_add_fail()
+test_add_fail(void)
 {
     int actual = add(2, 5);
     CC_ASSERT_INT_NOT_EQUAL(actual, 5);
@@ -49,7 +49,7 @@ test_add_fail()
 }
 
 cc_result_t
-test_add_success()
+test_add_success(void)
 {
     int res = add(undertest_x, undertest_y); 
     CC_ASSERT_INT_EQUAL(res, expected);
@@ -57,7 +57,7 @@ test_add_success()
 }
 
 cc_result_t
-test_sub_success()
+test_sub_success(void)
 {
     int res = sub(undertest_x, undertest_y);
     CC_ASSERT_INT_EQUAL(res, (undertest_x-undertest_y)); 
@@ -65,35 +65,35 @@ test_sub_success()
 }
 
 cc_result_t
-test_string_compare_success()
+test_string_compare_success(void)
 {
     CC_ASSERT_STRING_EQUAL("x", "x");
     CC_SUCCESS;
 }
 
 cc_result_t
-test_string_compare_failure()
+test_string_compare_failure(void)
 {
     CC_ASSERT_STRING_NOT_EQUAL("x", "y");
     CC_SUCCESS;
 }
 
 cc_result_t
-test_assert_true()
+test_assert_true(void)
 {
     CC_ASSERT_TRUE(true); 
     CC_SUCCESS;
 }
 
 cc_result_t
-test_assert_null()
+test_assert_null(void)
 {
     CC_ASSERT_NULL(NULL); 
     CC_SUCCESS;
 }
 
 cc_result_t
-test_assert_not_null()
+test_assert_not_null(void)
 {
     CC_ASSERT_NOT_NULL((void*)1); 
     CC_SUCCESS;
