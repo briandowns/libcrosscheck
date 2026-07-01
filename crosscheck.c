@@ -50,8 +50,8 @@ typedef struct {
 static uint64_t count = 0;
 static uint64_t passed = 0;
 static uint64_t failed = 0;
-static clock_t  start = 0;
-static clock_t  end = 0;
+static clock_t start = 0;
+static clock_t end = 0;
 
 static test_record_t *results = NULL;
 static size_t result_count = 0;
@@ -65,15 +65,13 @@ static bool
 results_add(test_record_t record)
 {
     if (result_count == result_capacity) {
+        size_t new_capacity = result_capacity == 0 ? 64 : result_capacity * 2;
 
-        size_t new_capacity =
-            result_capacity == 0 ? 64 : result_capacity * 2;
-
-        test_record_t *tmp =
-            realloc(results, new_capacity * sizeof(test_record_t));
-
-        if (tmp == NULL)
+        test_record_t *tmp = realloc(results,
+            new_capacity * sizeof(test_record_t));
+        if (tmp == NULL) {
             return false;
+        }
 
         results = tmp;
         result_capacity = new_capacity;
@@ -97,8 +95,9 @@ cc_init()
 static void
 print_fail_info(const cc_result_t ret, const double time_spent)
 {
-    printf("  %-36s%18s:%-12"PRIu64 RED "%-8s" RESET " %-2.3f/ms\n",
-        ret.function, ret.filename, ret.line, "failed", (time_spent*1000));
+    printf("  %-*s " RED "%-8s" RESET " %8.3f/ms    %s:%-12"PRIu64"\n",
+        (int)longest_name, ret.function, "failed", time_spent,
+        ret.filename, ret.line);
 
     if (ret.type == test_type_char) {
         printf("        expected: %c, got: %c\n",
@@ -172,8 +171,8 @@ cc_run(cc_func_t func)
     cc_result_t ret = func();
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
-    double elapsed_ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0
-                    + (ts_end.tv_nsec - ts_start.tv_nsec) / 1e6;
+    double elapsed_ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0 +
+        (ts_end.tv_nsec - ts_start.tv_nsec) / 1e6;
 
     bool ok = ret.result;
     ok ? passed++ : failed++;
