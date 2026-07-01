@@ -1,8 +1,6 @@
 # Crosscheck
 
-[![Build and Deploy](https://github.com/briandowns/crosscheck/actions/workflows/main.yml/badge.svg)](https://github.com/briandowns/crosscheck/actions/workflows/main.yml/badge.svg)
-
-Crosscheck is a very simple unit testing library for C code.
+Crosscheck is a very simple unit testing library for C.
 
 ## Build and Install
 

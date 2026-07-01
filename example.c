@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <time.h>
 
 #include "crosscheck.h"
@@ -13,7 +12,7 @@ static int undertest_y = 0;
 static int expected = 0;
 
 void
-cc_setup()
+cc_setup(void)
 {
     undertest_x = GEN_RAND_NUM;
     undertest_y = GEN_RAND_NUM;
@@ -21,7 +20,7 @@ cc_setup()
 }
 
 void
-cc_tear_down()
+cc_tear_down(void)
 {
     undertest_x = 0;
     undertest_y = 0;

@@ -50,8 +50,8 @@ typedef struct {
 static uint64_t count = 0;
 static uint64_t passed = 0;
 static uint64_t failed = 0;
-static clock_t  start = 0;
-static clock_t  end = 0;
+static clock_t start = 0;
+static clock_t end = 0;
 
 static test_record_t *results = NULL;
 static size_t result_count = 0;
@@ -96,7 +96,7 @@ static void
 print_fail_info(const cc_result_t ret, const double time_spent)
 {
     printf("  %-*s " RED "%-8s" RESET " %8.3f/ms    %s:%-12"PRIu64"\n",
-        (int)longest_name, ret.function, "failed", (time_spent*1000),
+        (int)longest_name, ret.function, "failed", time_spent,
         ret.filename, ret.line);
 
     if (ret.type == test_type_char) {
