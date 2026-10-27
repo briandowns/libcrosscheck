@@ -323,14 +323,14 @@ typedef cc_result_t (*cc_func_t)(void);
     } while (0)
 
 
-#define __CC_ASSIGN_BOOL(actual)                     \
-    cc_result_t ccrt = (cc_result_t) {               \
-        .filename = __FILE__,                        \
-        .function = (char*)__FUNCTION__,             \
-        .type = test_type_bool,                      \
-        .act = (test_values_t) {.bool_val = actual}, \
-        .result = false,                             \
-        .line = __LINE__                             \
+#define __CC_ASSIGN_BOOL(actual)                       \
+    cc_result_t ccrt = (cc_result_t) {                 \
+        .filename = __FILE__,                          \
+        .function = (char*)__FUNCTION__,               \
+        .type = test_type_bool,                        \
+        .act = (test_values_t) {.bool_val = (actual)}, \
+        .result = false,                               \
+        .line = __LINE__                               \
     };
  
 /**
@@ -338,7 +338,7 @@ typedef cc_result_t (*cc_func_t)(void);
  */
 #define CC_ASSERT_TRUE(actual)        \
     do {                              \
-        if (actual == false) {        \
+        if (!(actual)) {              \
             __CC_ASSIGN_BOOL(actual); \
             return ccrt;              \
         }                             \
@@ -368,7 +368,7 @@ do {                              \
 */
 #define CC_ASSERT_NULL(actual)                           \
 do {                                                     \
-    if (actual != NULL) {                                \
+    if ((actual) != NULL) {                              \
         __CC_NULL_RES;                                   \
         __CC_STRING_VAL_COPY("NULL", "not NULL");        \
         return ccrt;                                     \
@@ -380,7 +380,7 @@ do {                                                     \
 */
 #define CC_ASSERT_NOT_NULL(actual)                       \
 do {                                                     \
-    if (actual == NULL) {                                \
+    if ((actual) == NULL) {                              \
         __CC_NULL_RES;                                   \
         __CC_STRING_VAL_COPY("not NULL", "NULL");        \
         return ccrt;                                     \
